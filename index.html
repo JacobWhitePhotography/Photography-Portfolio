@@ -257,16 +257,8 @@
         .m-item img {
             width: 100%;
             display: block;
-            opacity: 0;
-            transform: translateY(14px);
-            transition: opacity 0.75s ease, transform 0.75s ease, filter 0.35s ease, transform 0.35s ease;
             filter: brightness(0.92);
-            will-change: opacity, transform;
-        }
-
-        .m-item img.fadein {
-            opacity: 1;
-            transform: translateY(0);
+            transition: filter 0.35s ease, transform 0.35s ease;
         }
 
         .m-item:hover img {
@@ -687,25 +679,6 @@
             }
         }, { passive: true });
 
-        // ── Gallery image fade-in ──
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (!entry.isIntersecting) return;
-                const img = entry.target;
-                const col = parseInt(img.closest('.m-item').dataset.i) % 3;
-                setTimeout(() => img.classList.add('fadein'), col * 70);
-                observer.unobserve(img);
-            });
-        }, { threshold: 0.05, rootMargin: '0px 0px 0px 0px' });
-
-        document.querySelectorAll('.m-item img').forEach(img => {
-            // Fallback: if image loads but observer never fired, show it anyway
-            img.addEventListener('load', () => {
-                setTimeout(() => img.classList.add('fadein'), 100);
-            });
-            if (img.complete && img.naturalWidth) img.classList.add('fadein');
-            observer.observe(img);
-        });
 
         // ── Lightbox ──
         const photos = [
