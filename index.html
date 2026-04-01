@@ -696,9 +696,16 @@
                 setTimeout(() => img.classList.add('fadein'), col * 70);
                 observer.unobserve(img);
             });
-        }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+        }, { threshold: 0.05, rootMargin: '0px 0px 0px 0px' });
 
-        document.querySelectorAll('.m-item img').forEach(img => observer.observe(img));
+        document.querySelectorAll('.m-item img').forEach(img => {
+            // Fallback: if image loads but observer never fired, show it anyway
+            img.addEventListener('load', () => {
+                setTimeout(() => img.classList.add('fadein'), 100);
+            });
+            if (img.complete && img.naturalWidth) img.classList.add('fadein');
+            observer.observe(img);
+        });
 
         // ── Lightbox ──
         const photos = [
