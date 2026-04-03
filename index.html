@@ -359,6 +359,13 @@
         .field input::placeholder,
         .field textarea::placeholder { color: rgba(255,255,255,0.12); }
 
+        .field input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.55);
+            cursor: pointer;
+        }
+
+        .field input[type="date"]:invalid { color: rgba(255,255,255,0.12); }
+
         .btn-send {
             align-self: flex-start;
             background: transparent;
@@ -606,11 +613,19 @@
                 <form class="contact-form" id="contactForm">
                     <div class="field">
                         <label for="fname">Name</label>
-                        <input type="text" id="fname" name="name" placeholder="Your name" autocomplete="name">
+                        <input type="text" id="fname" name="name" placeholder="Your name" autocomplete="name" required>
+                    </div>
+                    <div class="field">
+                        <label for="fclub">Club / Organisation</label>
+                        <input type="text" id="fclub" name="club" placeholder="Club or organisation name">
                     </div>
                     <div class="field">
                         <label for="femail">Email</label>
                         <input type="email" id="femail" name="email" placeholder="your@email.com" autocomplete="email" required>
+                    </div>
+                    <div class="field">
+                        <label for="fdate">Event Date</label>
+                        <input type="date" id="fdate" name="event_date">
                     </div>
                     <div class="field">
                         <label for="fmsg">Message</label>
@@ -618,6 +633,7 @@
                     </div>
                     <button type="submit" class="btn-send" id="btnSend">Send message</button>
                 </form>
+                <p id="formStatus" style="display:none;font-size:0.75rem;letter-spacing:0.12em;margin-top:14px;"></p>
             </div>
         </div>
     </section>
@@ -755,12 +771,37 @@
         });
 
         // ── Contact form ──
-        document.getElementById('contactForm').addEventListener('submit', e => {
+        document.getElementById('contactForm').addEventListener('submit', async e => {
             e.preventDefault();
-            const btn = document.getElementById('btnSend');
-            btn.textContent = 'Sent ✓';
+            const btn    = document.getElementById('btnSend');
+            const status = document.getElementById('formStatus');
             btn.disabled = true;
-            e.target.reset();
+            btn.textContent = 'Sending…';
+
+            try {
+                const res = await fetch('https://formspree.io/f/mkopqqee', {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json' },
+                    body: new FormData(e.target)
+                });
+
+                if (res.ok) {
+                    btn.textContent = 'Sent ✓';
+                    status.style.display = 'block';
+                    status.style.color = 'rgba(255,255,255,0.45)';
+                    status.textContent = 'Message received — I\'ll be in touch soon.';
+                    e.target.reset();
+                } else {
+                    const data = await res.json();
+                    throw new Error((data.errors || []).map(err => err.message).join(', ') || 'Submission failed');
+                }
+            } catch (err) {
+                btn.disabled = false;
+                btn.textContent = 'Send message';
+                status.style.display = 'block';
+                status.style.color = 'rgba(220,80,80,0.8)';
+                status.textContent = 'Something went wrong — please try again or email directly.';
+            }
         });
     })();
     </script>
